@@ -1,7 +1,3 @@
-/**
- * *************************************************************************************************
- * Copyright 2013 TeliaSonera. All rights reserved. ************************************************************************************************
- */
 package cz.tieto.princegame;
 
 import cz.tieto.princegame.common.GameStrategy;
@@ -28,8 +24,8 @@ public class ThinkingStrategy implements GameStrategy {
 
     private boolean goBack = false;
     public final static String PITFALL = "pitfall";
-    public final static String KNIGHT = "knight";
     public final static String SWORD = "sword";
+    public final static String HEALTH = "HEALTH";
     private int position = 0;
     private Map<Integer, Field> fields = new HashMap<Integer, Field>();
 
@@ -50,12 +46,18 @@ public class ThinkingStrategy implements GameStrategy {
         if (equipment != null) {
             return new Grab();
         }
-        
+
         Action goToGate = goToGate(current, forward, backward);
         if (goToGate != null) {
             return goToGate;
         }
-        
+
+//        equals with goToGate method
+//        Action goToGateStep = new GoToGateStrategy(current, forward, backward).step(prince);
+//        if (goToGateStep != null) {
+//            return goToGateStep;
+//        }
+
         if(prince.getHealth() <= 2) {
             return new Heal();
         }
@@ -116,17 +118,15 @@ public class ThinkingStrategy implements GameStrategy {
 
     }
     
-    boolean isPitfall(Field field) {
+    public boolean isPitfall(Field field) {
         return field != null && field.getObstacle() != null && PITFALL.equals(field.getObstacle().getName());
     }
-   boolean isKnight(Field field) {
-        return field != null && field.getObstacle() != null && KNIGHT.equals(field.getObstacle().getName()) && !"0".equals(field.getObstacle().getProperty("HEALTH"));
-    }
-//   boolean isS(Field field) {
-//        return field != null && field.getObstacle() != null && SWORD.equals(field.getObstacle().getName());
-//    }
 
-    private Action goToGate(Field current, Field forward, Field backward) {
+    public boolean isKnight(Field field) {
+        return Knight.isAlive(field);
+    }
+
+    public Action goToGate(Field current, Field forward, Field backward) {
         if (current.isGate()) {
             return new EnterGate();
         }
