@@ -34,7 +34,7 @@ public class ThinkingStrategy implements GameStrategy {
     public final static String HEALTH = "health";
     public static final String DRAGON = "dragon";
     private boolean jumpNeed = false;
-    
+    private final static String CHOPPER = "chopper";
 
     public Action step(Prince prince) {
 
@@ -42,7 +42,7 @@ public class ThinkingStrategy implements GameStrategy {
         if (current.isGate()) {
             return new EnterGate();
         }
-        final Field backward = prince.look(-11);
+        final Field backward = prince.look(-1);
         final Field forward = prince.look(1);
         knownFields.put(position, current);
         knownFields.put(position - 1, backward);
@@ -53,7 +53,7 @@ public class ThinkingStrategy implements GameStrategy {
         if (forward != null && forward.isGate()) {
             return goForward(forward);
         }
-        
+
         if (jumpNeed) {
             jumpNeed = false;
             if (!goBack) {
@@ -101,7 +101,7 @@ public class ThinkingStrategy implements GameStrategy {
                     goBack = !goBack;
                     return goBackward(backward);
                 }
-                
+
             }
             return goForward(forward);
         } else {
@@ -138,7 +138,7 @@ public class ThinkingStrategy implements GameStrategy {
      */
     public boolean canJump(int jump) {
         final Field field = knownFields.get(position + jump);
-        return field != null && !isPitfall(field) && !isKnight(field);
+        return field != null && !isPitfall(field) && !isKnight(field)&& !isChopper(field);
     }
 
     /**
@@ -161,6 +161,15 @@ public class ThinkingStrategy implements GameStrategy {
      * @return
      */
     public Action goBackward(final Field backward) {
+        if (isChopper(backward)) {
+            if (isChopperOpen(backward)) {
+                position -= 2;
+                jumpNeed = false;
+                return new JumpBackward();
+            } else {
+                return new Heal();
+            }
+        }
         if (isPitfall(backward) || canJump(-2)) {
             position -= 2;
             jumpNeed = false;
@@ -172,6 +181,15 @@ public class ThinkingStrategy implements GameStrategy {
     }
 
     public Action goForward(final Field forward) {
+        if (isChopper(forward)) {
+            if (isChopperOpen(forward)) {
+                position += 2;
+                jumpNeed = false;
+                return new JumpForward();
+            } else {
+                return new Heal();
+            }
+        }
         if (isPitfall(forward) || canJump(2)) {
             position += 2;
             jumpNeed = false;
@@ -210,5 +228,14 @@ public class ThinkingStrategy implements GameStrategy {
 
     public boolean isPitfall(Field field) {
         return field != null && field.getObstacle() != null && PITFALL.equals(field.getObstacle().getName());
+    }
+
+    public boolean isChopper(Field field) {
+        return field != null && field.getObstacle() != null && CHOPPER.equals(field.getObstacle().getName());
+    }
+
+    public boolean isChopperOpen(Field field) {
+        return isChopper(field) && "true".equals(field.getObstacle().getProperty("opening")) 
+                                && "false".equals(field.getObstacle().getProperty("closing"));
     }
 }

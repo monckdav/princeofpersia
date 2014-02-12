@@ -67,4 +67,12 @@ public class ThinkingStrategyTest {
         assertNotNull(strategy.getSword(DataFactory.createPrince(true)));
         assertEquals("sword", strategy.getSword(DataFactory.createPrince(true)).getName());
     }
+
+    @Test
+    public void isChopper() {
+//        assertTrue(strategy.isChopper(DataFactory.createChopper()));
+//        assertFalse(strategy.isPitfall(DataFactory.createField(null, null, true)));
+//        assertFalse(strategy.isPitfall(DataFactory.createField("sword", null, true)));
+//        assertTrue(strategy.isPitfall(DataFactory.createField("sword", "pitfall", false)));
+    }
 }
