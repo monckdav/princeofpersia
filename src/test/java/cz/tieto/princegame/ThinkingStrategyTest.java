@@ -62,7 +62,7 @@ public class ThinkingStrategyTest {
     }
     
     @Test
-    public void getSwordTest() {
+    public void getSword() {
         assertNull(strategy.getSword(DataFactory.createPrince(false)));
         assertNotNull(strategy.getSword(DataFactory.createPrince(true)));
         assertEquals("sword", strategy.getSword(DataFactory.createPrince(true)).getName());
@@ -82,5 +82,11 @@ public class ThinkingStrategyTest {
         assertFalse(strategy.isChopperOpen(DataFactory.createChopper(false, false)));
         assertFalse(strategy.isChopperOpen(DataFactory.createChopper(true, true)));
         assertFalse(strategy.isChopperOpen(DataFactory.createChopper(false, true)));
+    }
+
+    @Test
+    public void canJump() {
+        assertFalse(strategy.canJump(-2));
+        assertFalse(strategy.canJump(2));
     }
 }

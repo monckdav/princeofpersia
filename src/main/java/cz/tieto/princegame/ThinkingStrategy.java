@@ -27,6 +27,7 @@ public class ThinkingStrategy implements GameStrategy {
     private Map<Integer, Field> knownFields = new HashMap<Integer, Field>();
     private boolean heal = false;
     private Integer position = 0;
+    private int prevHealth = 0;
     public final static String KNIGHT = "knight";
     public final static String DEAD = "dead";
     public final static String PITFALL = "pitfall";
@@ -50,6 +51,19 @@ public class ThinkingStrategy implements GameStrategy {
         knownFields.put(position, current);
         knownFields.put(position - 1, backward);
         knownFields.put(position + 1, forward);
+        
+/*        if (prevHealth-prince.getHealth()>0) { // change of health
+            if ((isKnight(forward) || isKnight(backward)) && prevHealth-prince.getHealth()==1) { // prince lost one life and knight is next to prince
+                // do nothing
+            } else if ((isKnight(forward) || isKnight(backward)) && prevHealth-prince.getHealth()==2) { // prince lost two lifes and knight is next to prince and dragon behind
+                // move away
+//                heal = true;
+            } else if ((!isKnight(forward) && !isKnight(backward)) && prevHealth-prince.getHealth()==1) { // prince lost one life and invisible dragon behind
+                
+            }
+        }
+        prevHealth = prince.getHealth();
+        */
         if (backward != null && backward.isGate()) {
             return goBackward(backward); // ok only if has never met the gate before
         }
