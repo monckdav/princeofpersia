@@ -33,6 +33,7 @@ public class ThinkingStrategy implements GameStrategy {
     public final static String SWORD = "sword";
     public final static String HEALTH = "health";
     public static final String DRAGON = "dragon";
+    private boolean jumpNeed = false;
     
 
     public Action step(Prince prince) {
@@ -51,6 +52,15 @@ public class ThinkingStrategy implements GameStrategy {
         }
         if (forward != null && forward.isGate()) {
             return goForward(forward);
+        }
+        
+        if (jumpNeed) {
+            jumpNeed = false;
+            if (!goBack) {
+                return goForward(forward);
+            } else {
+                return goBackward(backward);
+            }
         }
 
         if (prince.getHealth() == 1 || heal && prince.getHealth() < prince.getMaxHealth()) {
@@ -82,6 +92,7 @@ public class ThinkingStrategy implements GameStrategy {
             } else if (isDragon(forward)) {
                 if (prince.getHealth() == 3) {// too weak prince 
                     heal = true;
+                    jumpNeed = true;
                     return goBackward(backward);
                 } else if (hasSword(prince)) { // fight
                     final Obstacle obstacle = forward.getObstacle();
@@ -97,6 +108,7 @@ public class ThinkingStrategy implements GameStrategy {
             if (isKnight(backward)) {
                 if (prince.getHealth() == 1) { // too weak prince
                     heal = true;
+                    jumpNeed = true;
                     return goForward(forward);
                 } else if (hasSword(prince)) {
                     final Obstacle obstacle = backward.getObstacle();
@@ -151,6 +163,7 @@ public class ThinkingStrategy implements GameStrategy {
     public Action goBackward(final Field backward) {
         if (isPitfall(backward) || canJump(-2)) {
             position -= 2;
+            jumpNeed = false;
             return new JumpBackward();
         } else {
             position--;
@@ -161,6 +174,7 @@ public class ThinkingStrategy implements GameStrategy {
     public Action goForward(final Field forward) {
         if (isPitfall(forward) || canJump(2)) {
             position += 2;
+            jumpNeed = false;
             return new JumpForward();
         } else { // unknown place
             position++;
