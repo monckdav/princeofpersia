@@ -26,12 +26,23 @@ public class DataFactory {
         return new FieldImpl(null, createObstacle(ThinkingStrategy.PITFALL), true);
     }
 
+    public static Field createChopper(boolean opening, boolean closing) {
+        return new FieldImpl(null, createObstacle(ThinkingStrategy.CHOPPER, opening, closing), true);
+    }
+
     public static Equipment createEquipment(String name) {
         return new EquipmentImpl(name, 1, null);
     }
 
     public static Obstacle createObstacle(String name) {
         return new ObstacleImpl(name, 1, null);
+    }
+
+    public static Obstacle createObstacle(String name, boolean opening, boolean closing) {
+        Map<String, String> properties = new HashMap<String, String>();
+        properties.put(ThinkingStrategy.OPENING, String.valueOf(opening));
+        properties.put(ThinkingStrategy.CLOSING, String.valueOf(closing));
+        return new ObstacleImpl(name, 1, properties);
     }
 
     public static Obstacle createObstacle(String name, Map<String, String> properties) {

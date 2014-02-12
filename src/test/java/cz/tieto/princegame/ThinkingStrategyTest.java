@@ -70,9 +70,17 @@ public class ThinkingStrategyTest {
 
     @Test
     public void isChopper() {
-//        assertTrue(strategy.isChopper(DataFactory.createChopper()));
-//        assertFalse(strategy.isPitfall(DataFactory.createField(null, null, true)));
-//        assertFalse(strategy.isPitfall(DataFactory.createField("sword", null, true)));
-//        assertTrue(strategy.isPitfall(DataFactory.createField("sword", "pitfall", false)));
+        assertTrue(strategy.isChopper(DataFactory.createChopper(true, false)));
+        assertTrue(strategy.isChopper(DataFactory.createChopper(false, false)));
+        assertTrue(strategy.isChopper(DataFactory.createChopper(true, true)));
+        assertTrue(strategy.isChopper(DataFactory.createChopper(false, true)));
+    }
+
+    @Test
+    public void isChopperOpen() {
+        assertTrue(strategy.isChopperOpen(DataFactory.createChopper(true, false)));
+        assertFalse(strategy.isChopperOpen(DataFactory.createChopper(false, false)));
+        assertFalse(strategy.isChopperOpen(DataFactory.createChopper(true, true)));
+        assertFalse(strategy.isChopperOpen(DataFactory.createChopper(false, true)));
     }
 }

@@ -23,8 +23,8 @@ import java.util.Map;
  */
 public class ThinkingStrategy implements GameStrategy {
 
-    private static boolean goBack = false;
-    private static Map<Integer, Field> knownFields = new HashMap<Integer, Field>();
+    private boolean goBack = false;
+    private Map<Integer, Field> knownFields = new HashMap<Integer, Field>();
     private boolean heal = false;
     private Integer position = 0;
     public final static String KNIGHT = "knight";
@@ -32,9 +32,11 @@ public class ThinkingStrategy implements GameStrategy {
     public final static String PITFALL = "pitfall";
     public final static String SWORD = "sword";
     public final static String HEALTH = "health";
-    public static final String DRAGON = "dragon";
+    public final static String DRAGON = "dragon";
     private boolean jumpNeed = false;
-    private final static String CHOPPER = "chopper";
+    public final static String CHOPPER = "chopper";
+    public final static String OPENING = "opening";
+    public final static String CLOSING = "closing";
 
     public Action step(Prince prince) {
 
@@ -235,7 +237,7 @@ public class ThinkingStrategy implements GameStrategy {
     }
 
     public boolean isChopperOpen(Field field) {
-        return isChopper(field) && "true".equals(field.getObstacle().getProperty("opening")) 
-                                && "false".equals(field.getObstacle().getProperty("closing"));
+        return isChopper(field) && "true".equals(field.getObstacle().getProperty(ThinkingStrategy.OPENING)) 
+                                && "false".equals(field.getObstacle().getProperty(ThinkingStrategy.CLOSING));
     }
 }
