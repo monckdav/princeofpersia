@@ -65,7 +65,7 @@ public class ThinkingStrategy implements GameStrategy {
             }
         }
 
-        if (prince.getHealth() == 1 || heal && prince.getHealth() < prince.getMaxHealth()) {
+        if (prince.getHealth() == 0 || heal && prince.getHealth() < prince.getMaxHealth()) {
             return new Heal();
         }
         heal = false;
@@ -92,7 +92,7 @@ public class ThinkingStrategy implements GameStrategy {
                     return goBackward(backward);
                 }
             } else if (isDragon(forward)) {
-                if (prince.getHealth() == 3) {// too weak prince 
+                if (prince.getHealth() <4) {// too weak prince 
                     heal = true;
                     jumpNeed = true;
                     return goBackward(backward);
@@ -120,7 +120,7 @@ public class ThinkingStrategy implements GameStrategy {
                     return goForward(forward);
                 }
             } else if (isDragon(backward)) {
-                if (prince.getHealth() == 3) { // too weak prince
+                if (prince.getHealth() <4) { // too weak prince
                     heal = true;
                     return goForward(forward);
                 } else if (hasSword(prince)) {
