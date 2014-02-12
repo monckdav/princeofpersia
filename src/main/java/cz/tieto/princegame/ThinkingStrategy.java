@@ -32,6 +32,7 @@ public class ThinkingStrategy implements GameStrategy {
     public final static String PITFALL = "pitfall";
     public final static String SWORD = "sword";
     public final static String HEALTH = "health";
+    public static final String DRAGON = "dragon";
     
 
     public Action step(Prince prince) {
@@ -40,8 +41,8 @@ public class ThinkingStrategy implements GameStrategy {
         if (current.isGate()) {
             return new EnterGate();
         }
-        final Field backward = prince.look(1);
-        final Field forward = prince.look(-1);
+        final Field backward = prince.look(-11);
+        final Field forward = prince.look(1);
         knownFields.put(position, current);
         knownFields.put(position - 1, backward);
         knownFields.put(position + 1, forward);
@@ -78,11 +79,34 @@ public class ThinkingStrategy implements GameStrategy {
                     goBack = !goBack;
                     return goBackward(backward);
                 }
+            } else if (isDragon(forward)) {
+                if (prince.getHealth() == 3) {// too weak prince 
+                    heal = true;
+                    return goBackward(backward);
+                } else if (hasSword(prince)) { // fight
+                    final Obstacle obstacle = forward.getObstacle();
+                    return new Use(getSword(prince), obstacle);
+                } else { // search sword
+                    goBack = !goBack;
+                    return goBackward(backward);
+                }
+                
             }
             return goForward(forward);
         } else {
             if (isKnight(backward)) {
                 if (prince.getHealth() == 1) { // too weak prince
+                    heal = true;
+                    return goForward(forward);
+                } else if (hasSword(prince)) {
+                    final Obstacle obstacle = backward.getObstacle();
+                    return new Use(getSword(prince), obstacle);
+                } else {
+                    goBack = !goBack;
+                    return goForward(forward);
+                }
+            } else if (isDragon(backward)) {
+                if (prince.getHealth() == 3) { // too weak prince
                     heal = true;
                     return goForward(forward);
                 } else if (hasSword(prince)) {
@@ -156,6 +180,17 @@ public class ThinkingStrategy implements GameStrategy {
      */
     public boolean isKnight(Field field) {
         return field != null && field.getObstacle() != null && KNIGHT.equals(field.getObstacle().getName())
+                && "false".equals(field.getObstacle().getProperty(DEAD));
+    }
+
+    /**
+     * returns if on the field is alive dragon
+     *
+     * @param field
+     * @return
+     */
+    public boolean isDragon(Field field) {
+        return field != null && field.getObstacle() != null && DRAGON.equals(field.getObstacle().getName())
                 && "false".equals(field.getObstacle().getProperty(DEAD));
     }
 
