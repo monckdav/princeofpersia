@@ -3,9 +3,12 @@ package cz.tieto.princegame;
 import cz.tieto.princegame.client.gameobject.EquipmentImpl;
 import cz.tieto.princegame.client.gameobject.FieldImpl;
 import cz.tieto.princegame.client.gameobject.ObstacleImpl;
+import cz.tieto.princegame.client.gameobject.PrinceImpl;
 import cz.tieto.princegame.common.gameobject.Equipment;
 import cz.tieto.princegame.common.gameobject.Field;
 import cz.tieto.princegame.common.gameobject.Obstacle;
+import cz.tieto.princegame.common.gameobject.Prince;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,9 +42,20 @@ public class DataFactory {
         return new FieldImpl(null, null, gate);
     }
 
-    public static Field createKnight(int life) {
+    public static Field createKnight(int life, boolean dead) {
         HashMap<String, String> properties = new HashMap<String, String> ();
         properties.put(ThinkingStrategy.HEALTH, Integer.toString(life));
+        properties.put(ThinkingStrategy.DEAD, Boolean.toString(dead));
         return new FieldImpl(null, createObstacle(Knight.NAME, properties), false);
     }
+    
+    public static Prince createPrince(boolean sword) {
+        Prince prince = new PrinceImpl (0,"prince", 5, 3, null, new ArrayList<Equipment>());
+        if (sword) {
+            prince.getInventory().add(createEquipment("sword"));
+        }
+        return prince;
+    }
+    
+    
 }

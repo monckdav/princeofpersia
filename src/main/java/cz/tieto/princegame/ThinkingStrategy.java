@@ -12,6 +12,7 @@ import cz.tieto.princegame.common.action.MoveForward;
 import cz.tieto.princegame.common.action.Use;
 import cz.tieto.princegame.common.gameobject.Equipment;
 import cz.tieto.princegame.common.gameobject.Field;
+import cz.tieto.princegame.common.gameobject.Obstacle;
 import cz.tieto.princegame.common.gameobject.Prince;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,138 +23,143 @@ import java.util.Map;
  */
 public class ThinkingStrategy implements GameStrategy {
 
-    private boolean goBack = false;
+    private static boolean goBack = false;
+    private static Map<Integer, Field> knownFields = new HashMap<Integer, Field>();
+    private boolean heal = false;
+    private Integer position = 0;
+    public final static String KNIGHT = "knight";
+    public final static String DEAD = "dead";
     public final static String PITFALL = "pitfall";
     public final static String SWORD = "sword";
-    public final static String HEALTH = "HEALTH";
-    private int position = 0;
-    private Map<Integer, Field> fields = new HashMap<Integer, Field>();
+    public final static String HEALTH = "health";
+    
 
     public Action step(Prince prince) {
-        if (prince == null) {
-            System.err.println("Prince can not be null.");
-            return null;
-        }
-        Field current = prince.look(0);
-        Field backward = prince.look(-1);
-        Field forward = prince.look(1);
 
-        fields.put(position, current);
-        fields.put(position-1, backward);
-        fields.put(position+1, forward);
-
-        final Equipment equipment = current.getEquipment();
-        if (equipment != null) {
-            return new Grab();
-        }
-
-        Action goToGate = goToGate(current, forward, backward);
-        if (goToGate != null) {
-            return goToGate;
-        }
-
-//        equals with goToGate method
-//        Action goToGateStep = new GoToGateStrategy(current, forward, backward).step(prince);
-//        if (goToGateStep != null) {
-//            return goToGateStep;
-//        }
-
-        if(prince.getHealth() <= 2) {
-            return new Heal();
-        }
-
-        if (forward == null) {
-            goBack = true;
-        }
-
-        if (backward == null) {
-            goBack = false;
-        }
-        if (goBack) {
-            if (isPitfall(backward)) {
-                position = position - 2;
-                return new JumpBackward();
-            }
-            if (isKnight(backward)) {
-                if (hasSword(prince) && prince.getHealth() >= 2) {
-                    return new Use(getSword(prince), backward.getObstacle());
-                } else {
-                    goBack = !goBack;
-                    if (isPitfall(forward)) {
-                        position=position-2;
-                        return new JumpForward();
-                    }else {
-                        position--;
-                        return new MoveForward();
-                    }
-                    
-                }
-            }
-            position--;
-            return new MoveBackward();
-        // check if forward is obstacle and can be jumped
-        } else {
-            if (isPitfall(forward)) {
-                position = position + 2;
-                return new JumpForward();
-            }
-            if (isKnight(forward)) {
-                if (hasSword(prince)&& prince.getHealth() >= 2) {
-                    return new Use(getSword(prince), backward.getObstacle());
-                } else {
-                    goBack = !goBack;
-                    if (isPitfall(backward)) {
-                        position=position+2;
-                        return new JumpBackward();
-                    }else {
-                        position++;
-                        return new MoveBackward();
-                    }
-                    
-                }
-            }
-            position ++;
-            return new MoveForward();
-        }
-
-    }
-    
-    public boolean isPitfall(Field field) {
-        return field != null && field.getObstacle() != null && PITFALL.equals(field.getObstacle().getName());
-    }
-
-    public boolean isKnight(Field field) {
-        return Knight.isAlive(field);
-    }
-
-    public Action goToGate(Field current, Field forward, Field backward) {
+        final Field current = prince.look(0);
         if (current.isGate()) {
             return new EnterGate();
         }
-
+        final Field backward = prince.look(1);
+        final Field forward = prince.look(-1);
+        knownFields.put(position, current);
+        knownFields.put(position - 1, backward);
+        knownFields.put(position + 1, forward);
         if (backward != null && backward.isGate()) {
-            position--;
-            return new MoveBackward();
+            return goBackward(backward); // ok only if has never met the gate before
         }
-
         if (forward != null && forward.isGate()) {
-            position++;
-            return new MoveForward();
+            return goForward(forward);
         }
-        return null;
+
+        if (prince.getHealth() == 1 || heal && prince.getHealth() < prince.getMaxHealth()) {
+            return new Heal();
+        }
+        heal = false;
+
+        if (current.getEquipment() != null) {
+            return new Grab();
+        }
+
+        // is wall?
+        if (backward == null || forward == null) {
+            goBack = !goBack;
+        }
+
+        if (!goBack) { // forward direction
+            if (isKnight(forward)) {
+                if (prince.getHealth() == 1) {// too weak prince 
+                    heal = true;
+                    return goBackward(backward);
+                } else if (hasSword(prince)) { // fight
+                    final Obstacle obstacle = forward.getObstacle();
+                    return new Use(getSword(prince), obstacle);
+                } else { // search sword
+                    goBack = !goBack;
+                    return goBackward(backward);
+                }
+            }
+            return goForward(forward);
+        } else {
+            if (isKnight(backward)) {
+                if (prince.getHealth() == 1) { // too weak prince
+                    heal = true;
+                    return goForward(forward);
+                } else if (hasSword(prince)) {
+                    final Obstacle obstacle = backward.getObstacle();
+                    return new Use(getSword(prince), obstacle);
+                } else {
+                    goBack = !goBack;
+                    return goForward(forward);
+                }
+            }
+            return goBackward(backward);
+        }
     }
 
-    private boolean hasSword(Prince prince) {
-        Equipment eq = getSword(prince);
-        return eq != null;
+    /**
+     * @return true if the prince already was there and place is safe
+     */
+    public boolean canJump(int jump) {
+        final Field field = knownFields.get(position + jump);
+        return field != null && !isPitfall(field) && !isKnight(field);
     }
 
-    private Equipment getSword(Prince prince) {
-        for (Equipment eq : prince.getInventory()){
+    /**
+     * pick up sword from equipments
+     *
+     * @param prince
+     * @return
+     */
+    public Equipment getSword(Prince prince) {
+        for (Equipment eq : prince.getInventory()) {
             if (SWORD.equals(eq.getName())) {
                 return eq;
             }
         }
         return null;
+    }
+
+    /**
+     * @param backward
+     * @return
+     */
+    public Action goBackward(final Field backward) {
+        if (isPitfall(backward) || canJump(-2)) {
+            position -= 2;
+            return new JumpBackward();
+        } else {
+            position--;
+            return new MoveBackward();
+        }
+    }
+
+    public Action goForward(final Field forward) {
+        if (isPitfall(forward) || canJump(2)) {
+            position += 2;
+            return new JumpForward();
+        } else { // unknown place
+            position++;
+            return new MoveForward();
+        }
+    }
+
+    private boolean hasSword(Prince prince) {
+        return getSword(prince) != null;
+    }
+
+    /**
+     * returns if on the field is alive knight
+     *
+     * @param field
+     * @return
+     */
+    public boolean isKnight(Field field) {
+        return field != null && field.getObstacle() != null && KNIGHT.equals(field.getObstacle().getName())
+                && "false".equals(field.getObstacle().getProperty(DEAD));
+    }
+
+    public boolean isPitfall(Field field) {
+        return field != null && field.getObstacle() != null && PITFALL.equals(field.getObstacle().getName());
     }
 }

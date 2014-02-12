@@ -33,21 +33,21 @@ public class ThinkingStrategyTest {
 
     @Test
     public void isKnight() {
-        System.out.print(strategy.isKnight(DataFactory.createKnight(1)));
-        assertTrue(strategy.isKnight(DataFactory.createKnight(1)));
-        assertFalse(strategy.isKnight(DataFactory.createKnight(0)));
-        assertFalse(strategy.isKnight(DataFactory.createKnight(-1)));
+        assertTrue(strategy.isKnight(DataFactory.createKnight(1, false)));
+        assertFalse(strategy.isKnight(DataFactory.createKnight(0, true)));
+        assertFalse(strategy.isKnight(DataFactory.createKnight(-1, true)));
+        assertTrue(strategy.isKnight(DataFactory.createKnight(-1, false)));
     }
 
     @Test
     public void goToGate() {
-        assertNull(strategy.goToGate(DataFactory.createGate(false), DataFactory.createGate(false), DataFactory.createGate(false)));
-        assertTrue(strategy.goToGate(DataFactory.createGate(true), DataFactory.createGate(false), DataFactory.createGate(false))
-                instanceof EnterGate);
-        assertTrue(strategy.goToGate(DataFactory.createGate(false), DataFactory.createGate(true), DataFactory.createGate(false))
-                instanceof MoveForward);
-        assertTrue(strategy.goToGate(DataFactory.createGate(false), DataFactory.createGate(false), DataFactory.createGate(true))
-                instanceof MoveBackward);
+//        assertNull(strategy.goToGate(DataFactory.createGate(false), DataFactory.createGate(false), DataFactory.createGate(false)));
+//        assertTrue(strategy.goToGate(DataFactory.createGate(true), DataFactory.createGate(false), DataFactory.createGate(false))
+//                instanceof EnterGate);
+//        assertTrue(strategy.goToGate(DataFactory.createGate(false), DataFactory.createGate(true), DataFactory.createGate(false))
+//                instanceof MoveForward);
+//        assertTrue(strategy.goToGate(DataFactory.createGate(false), DataFactory.createGate(false), DataFactory.createGate(true))
+//                instanceof MoveBackward);
     }
 
     @Test
@@ -59,5 +59,12 @@ public class ThinkingStrategyTest {
                 instanceof MoveForward);
         assertTrue(new GoToGateStrategy(DataFactory.createGate(false), DataFactory.createGate(false), DataFactory.createGate(true)).step(null)
                 instanceof MoveBackward);
+    }
+    
+    @Test
+    public void getSwordTest() {
+        assertNull(strategy.getSword(DataFactory.createPrince(false)));
+        assertNotNull(strategy.getSword(DataFactory.createPrince(true)));
+        assertEquals("sword", strategy.getSword(DataFactory.createPrince(true)).getName());
     }
 }
