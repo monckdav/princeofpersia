@@ -37,6 +37,7 @@ public class ThinkingStrategy implements GameStrategy {
     public final static String CHOPPER = "chopper";
     public final static String OPENING = "opening";
     public final static String CLOSING = "closing";
+    public final static int MINIMAL_HEALTH_FOR_DRAGON = 4;
 
     public Action step(Prince prince) {
 
@@ -65,7 +66,7 @@ public class ThinkingStrategy implements GameStrategy {
             }
         }
 
-        if (prince.getHealth() == 0 || heal && prince.getHealth() < prince.getMaxHealth()) {
+        if (heal && prince.getHealth() < prince.getMaxHealth()) {
             return new Heal();
         }
         heal = false;
@@ -92,7 +93,7 @@ public class ThinkingStrategy implements GameStrategy {
                     return goBackward(backward);
                 }
             } else if (isDragon(forward)) {
-                if (prince.getHealth() <4) {// too weak prince 
+                if (prince.getHealth() < MINIMAL_HEALTH_FOR_DRAGON) {// too weak prince 
                     heal = true;
                     jumpNeed = true;
                     return goBackward(backward);
@@ -120,7 +121,7 @@ public class ThinkingStrategy implements GameStrategy {
                     return goForward(forward);
                 }
             } else if (isDragon(backward)) {
-                if (prince.getHealth() <4) { // too weak prince
+                if (prince.getHealth() < MINIMAL_HEALTH_FOR_DRAGON) { // too weak prince
                     heal = true;
                     return goForward(forward);
                 } else if (hasSword(prince)) {
