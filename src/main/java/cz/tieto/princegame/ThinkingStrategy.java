@@ -32,8 +32,11 @@ public class ThinkingStrategy implements GameStrategy {
     public final static String DEAD = "dead";
     public final static String PITFALL = "pitfall";
     public final static String SWORD = "sword";
+    public final static String MATCHES = "matches";
     public final static String HEALTH = "health";
     public final static String DRAGON = "dragon";
+    public final static String THORNBUSH = "thornbush";
+    public final static String BURNT = "burnt";
     private boolean jumpNeed = false;
     public final static String CHOPPER = "chopper";
     public final static String OPENING = "opening";
@@ -52,39 +55,7 @@ public class ThinkingStrategy implements GameStrategy {
         knownFields.put(position - 1, backward);
         knownFields.put(position + 1, forward);
         
-        if (prevHealth - prince.getHealth() > 0) { // change of health
-            if ((isKnight(forward) || isKnight(backward))
-                    && prevHealth - prince.getHealth() == 1 && prince.getHealth() < 2) { 
-                // prince lost one live and knight is next to prince
-                heal = true;
-                return moveAway(backward, forward);
-            } else if ((isKnight(forward) || isKnight(backward))
-                    && prevHealth - prince.getHealth() == 2 && prince.getHealth() < 3) { 
-                // prince lost two lives and knight is next to prince and dragon behind
-                heal = true;
-                return moveAway(backward, forward);
-            } else if ((isDragon(forward) || isDragon(backward))
-                    && prevHealth - prince.getHealth() == 4
-                    && prince.getHealth() < 5) { 
-                // prince lost 4 lives and two dragons in queue
-                jumpNeed = true;
-                heal = true;
-                return moveAway(backward, forward);
-            } else if ((isDragon(forward) || isDragon(backward))
-                    && prevHealth - prince.getHealth() == 3
-                    && prince.getHealth() < MINIMAL_HEALTH_FOR_DRAGON) { 
-                // prince lost 3 lives and dragon is next to
-                jumpNeed = true;
-                heal = true;
-                return moveAway(backward, forward);
-            } else if ((!isKnight(forward) && !isKnight(backward))
-                    && prevHealth - prince.getHealth() == 1
-                    && prince.getHealth() < MINIMAL_HEALTH_FOR_DRAGON) { 
-                // prince lost one live and invisible dragon behind
-                heal = true;
-                return moveAway(backward, forward);
-            }
-        }
+        if (healthStrategy(prince, forward, backward)) return moveAway(backward, forward);
         prevHealth = prince.getHealth();
         if (backward != null && backward.isGate()) {
             return goBackward(backward); // ok only if has never met the gate before
@@ -191,6 +162,21 @@ public class ThinkingStrategy implements GameStrategy {
     }
 
     /**
+     * pick up sword from equipments
+     *
+     * @param prince
+     * @return
+     */
+    public Equipment getMatches(Prince prince) {
+        for (Equipment eq : prince.getInventory()) {
+            if (MATCHES.equals(eq.getName())) {
+                return eq;
+            }
+        }
+        return null;
+    }
+
+    /**
      * @param backward
      * @return
      */
@@ -238,6 +224,10 @@ public class ThinkingStrategy implements GameStrategy {
         return getSword(prince) != null;
     }
 
+    private boolean hasMatches(Prince prince) {
+        return getMatches(prince) != null;
+    }
+
     /**
      * returns if on the field is alive knight
      *
@@ -258,6 +248,17 @@ public class ThinkingStrategy implements GameStrategy {
     public boolean isDragon(Field field) {
         return field != null && field.getObstacle() != null && DRAGON.equals(field.getObstacle().getName())
                 && "false".equals(field.getObstacle().getProperty(DEAD));
+    }
+
+    /**
+     * returns if on the field is alive bush
+     *
+     * @param field
+     * @return
+     */
+    public boolean isBush(Field field) {
+        return field != null && field.getObstacle() != null && THORNBUSH.equals(field.getObstacle().getName())
+                && "false".equals(field.getObstacle().getProperty(BURNT));
     }
 
     public boolean isPitfall(Field field) {
@@ -284,5 +285,43 @@ public class ThinkingStrategy implements GameStrategy {
         } else {
             return goBackward(backward);
         }
+    }
+
+    public boolean healthStrategy(Prince prince, final Field forward, final Field backward) {
+        if (prevHealth - prince.getHealth() > 0) {
+            // change of health
+            if ((isKnight(forward) || isKnight(backward))
+                    && prevHealth - prince.getHealth() == 1 && prince.getHealth() < 2) {
+                // prince lost one live and knight is next to prince
+                heal = true;
+                return true;
+            } else if ((isKnight(forward) || isKnight(backward))
+                    && prevHealth - prince.getHealth() == 2 && prince.getHealth() < 3) {
+                // prince lost two lives and knight is next to prince and dragon behind
+                heal = true;
+                return true;
+            } else if ((isDragon(forward) || isDragon(backward))
+                    && prevHealth - prince.getHealth() == 4
+                    && prince.getHealth() < 5) {
+                // prince lost 4 lives and two dragons in queue
+                jumpNeed = true;
+                heal = true;
+                return true;
+            } else if ((isDragon(forward) || isDragon(backward))
+                    && prevHealth - prince.getHealth() == 3
+                    && prince.getHealth() < MINIMAL_HEALTH_FOR_DRAGON) {
+                // prince lost 3 lives and dragon is next to
+                jumpNeed = true;
+                heal = true;
+                return true;
+            } else if ((!isKnight(forward) && !isKnight(backward))
+                    && prevHealth - prince.getHealth() == 1
+                    && prince.getHealth() < MINIMAL_HEALTH_FOR_DRAGON) {
+                // prince lost one live and invisible dragon behind
+                heal = true;
+                return true;
+            }
+        }
+        return false;
     }
 }
