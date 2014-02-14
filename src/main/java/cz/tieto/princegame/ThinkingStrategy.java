@@ -42,6 +42,7 @@ public class ThinkingStrategy implements GameStrategy {
     public final static String OPENING = "opening";
     public final static String CLOSING = "closing";
     public final static int MINIMAL_HEALTH_FOR_DRAGON = 4;
+    public final static int MINIMUM_HEALTH = 4;
 
     public Action step(Prince prince) {
 
@@ -55,7 +56,9 @@ public class ThinkingStrategy implements GameStrategy {
         knownFields.put(position - 1, backward);
         knownFields.put(position + 1, forward);
         
-        if (healthStrategy(prince, forward, backward)) return moveAway(backward, forward);
+        if (healthStrategy(prince, forward, backward)) {
+            return moveAway(backward, forward);
+        }
         prevHealth = prince.getHealth();
         
         if (backward != null && backward.isGate()) {
@@ -338,6 +341,9 @@ public class ThinkingStrategy implements GameStrategy {
                 heal = true;
                 return true;
             }
+         } else if (prevHealth - prince.getHealth() == 0 && prince.getHealth() <= MINIMUM_HEALTH){
+                heal = true; //do heal
+                return false; // do not move
         }
         return false;
     }
