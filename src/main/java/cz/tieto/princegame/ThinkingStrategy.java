@@ -23,7 +23,7 @@ import java.util.Map;
  */
 public class ThinkingStrategy implements GameStrategy {
 
-    private boolean goBack = false;
+    private boolean goBack = true;
     private Map<Integer, Field> knownFields = new HashMap<Integer, Field>();
     private boolean heal = false;
     private Integer position = 0;
@@ -52,18 +52,40 @@ public class ThinkingStrategy implements GameStrategy {
         knownFields.put(position - 1, backward);
         knownFields.put(position + 1, forward);
         
-/*        if (prevHealth-prince.getHealth()>0) { // change of health
-            if ((isKnight(forward) || isKnight(backward)) && prevHealth-prince.getHealth()==1) { // prince lost one life and knight is next to prince
-                // do nothing
-            } else if ((isKnight(forward) || isKnight(backward)) && prevHealth-prince.getHealth()==2) { // prince lost two lifes and knight is next to prince and dragon behind
-                // move away
-//                heal = true;
-            } else if ((!isKnight(forward) && !isKnight(backward)) && prevHealth-prince.getHealth()==1) { // prince lost one life and invisible dragon behind
-                
+        if (prevHealth - prince.getHealth() > 0) { // change of health
+            if ((isKnight(forward) || isKnight(backward))
+                    && prevHealth - prince.getHealth() == 1 && prince.getHealth() < 2) { 
+                // prince lost one live and knight is next to prince
+                heal = true;
+                return moveAway(backward, forward);
+            } else if ((isKnight(forward) || isKnight(backward))
+                    && prevHealth - prince.getHealth() == 2 && prince.getHealth() < 3) { 
+                // prince lost two lives and knight is next to prince and dragon behind
+                heal = true;
+                return moveAway(backward, forward);
+            } else if ((isDragon(forward) || isDragon(backward))
+                    && prevHealth - prince.getHealth() == 4
+                    && prince.getHealth() < 5) { 
+                // prince lost 4 lives and two dragons in queue
+                jumpNeed = true;
+                heal = true;
+                return moveAway(backward, forward);
+            } else if ((isDragon(forward) || isDragon(backward))
+                    && prevHealth - prince.getHealth() == 3
+                    && prince.getHealth() < MINIMAL_HEALTH_FOR_DRAGON) { 
+                // prince lost 3 lives and dragon is next to
+                jumpNeed = true;
+                heal = true;
+                return moveAway(backward, forward);
+            } else if ((!isKnight(forward) && !isKnight(backward))
+                    && prevHealth - prince.getHealth() == 1
+                    && prince.getHealth() < MINIMAL_HEALTH_FOR_DRAGON) { 
+                // prince lost one live and invisible dragon behind
+                heal = true;
+                return moveAway(backward, forward);
             }
         }
         prevHealth = prince.getHealth();
-        */
         if (backward != null && backward.isGate()) {
             return goBackward(backward); // ok only if has never met the gate before
         }
@@ -73,11 +95,7 @@ public class ThinkingStrategy implements GameStrategy {
 
         if (jumpNeed) {
             jumpNeed = false;
-            if (!goBack) {
-                return goForward(forward);
-            } else {
-                return goBackward(backward);
-            }
+            return move(backward, forward);
         }
 
         if (heal && prince.getHealth() < prince.getMaxHealth()) {
@@ -85,7 +103,7 @@ public class ThinkingStrategy implements GameStrategy {
         }
         heal = false;
 
-        if (current.getEquipment() != null) {
+        if (current.getEquipment() != null && SWORD.equals(current.getEquipment().getName())) {
             return new Grab();
         }
 
@@ -96,10 +114,7 @@ public class ThinkingStrategy implements GameStrategy {
 
         if (!goBack) { // forward direction
             if (isKnight(forward)) {
-                if (prince.getHealth() == 1) {// too weak prince 
-                    heal = true;
-                    return goBackward(backward);
-                } else if (hasSword(prince)) { // fight
+                if (hasSword(prince)) { // fight
                     final Obstacle obstacle = forward.getObstacle();
                     return new Use(getSword(prince), obstacle);
                 } else { // search sword
@@ -107,11 +122,7 @@ public class ThinkingStrategy implements GameStrategy {
                     return goBackward(backward);
                 }
             } else if (isDragon(forward)) {
-                if (prince.getHealth() < MINIMAL_HEALTH_FOR_DRAGON) {// too weak prince 
-                    heal = true;
-                    jumpNeed = true;
-                    return goBackward(backward);
-                } else if (hasSword(prince)) { // fight
+                if (hasSword(prince)) { // fight
                     final Obstacle obstacle = forward.getObstacle();
                     return new Use(getSword(prince), obstacle);
                 } else { // search sword
@@ -123,11 +134,7 @@ public class ThinkingStrategy implements GameStrategy {
             return goForward(forward);
         } else {
             if (isKnight(backward)) {
-                if (prince.getHealth() == 1) { // too weak prince
-                    heal = true;
-                    jumpNeed = true;
-                    return goForward(forward);
-                } else if (hasSword(prince)) {
+                if (hasSword(prince)) {
                     final Obstacle obstacle = backward.getObstacle();
                     return new Use(getSword(prince), obstacle);
                 } else {
@@ -135,10 +142,7 @@ public class ThinkingStrategy implements GameStrategy {
                     return goForward(forward);
                 }
             } else if (isDragon(backward)) {
-                if (prince.getHealth() < MINIMAL_HEALTH_FOR_DRAGON) { // too weak prince
-                    heal = true;
-                    return goForward(forward);
-                } else if (hasSword(prince)) {
+                if (hasSword(prince)) {
                     final Obstacle obstacle = backward.getObstacle();
                     return new Use(getSword(prince), obstacle);
                 } else {
@@ -146,6 +150,19 @@ public class ThinkingStrategy implements GameStrategy {
                     return goForward(forward);
                 }
             }
+            return goBackward(backward);
+        }
+    }
+
+    /**
+     * @param backward
+     * @param forward
+     * @return
+     */
+    public Action moveAway(final Field backward, final Field forward) {
+        if (goBack) { // move away
+            return goForward(forward);
+        } else {
             return goBackward(backward);
         }
     }
@@ -254,5 +271,18 @@ public class ThinkingStrategy implements GameStrategy {
     public boolean isChopperOpen(Field field) {
         return isChopper(field) && "true".equals(field.getObstacle().getProperty(ThinkingStrategy.OPENING)) 
                                 && "false".equals(field.getObstacle().getProperty(ThinkingStrategy.CLOSING));
+    }
+    
+    /**
+     * @param backward
+     * @param forward
+     * @return
+     */
+    public Action move(final Field backward, final Field forward) {
+        if (!goBack) {
+            return goForward(forward);
+        } else {
+            return goBackward(backward);
+        }
     }
 }
