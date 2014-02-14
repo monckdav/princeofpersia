@@ -57,6 +57,7 @@ public class ThinkingStrategy implements GameStrategy {
         
         if (healthStrategy(prince, forward, backward)) return moveAway(backward, forward);
         prevHealth = prince.getHealth();
+        
         if (backward != null && backward.isGate()) {
             return goBackward(backward); // ok only if has never met the gate before
         }
@@ -74,7 +75,7 @@ public class ThinkingStrategy implements GameStrategy {
         }
         heal = false;
 
-        if (current.getEquipment() != null && SWORD.equals(current.getEquipment().getName())) {
+        if (current.getEquipment() != null) {
             return new Grab();
         }
 
@@ -100,6 +101,14 @@ public class ThinkingStrategy implements GameStrategy {
                     goBack = !goBack;
                     return goBackward(backward);
                 }
+            } else if (isBush(forward)) {
+                if (hasMatches(prince)) { // burn
+                    final Obstacle obstacle = forward.getObstacle();
+                    return new Use(getMatches(prince), obstacle);
+                } else { // search sword
+                    goBack = !goBack;
+                    return goBackward(backward);
+                }
 
             }
             return goForward(forward);
@@ -116,6 +125,14 @@ public class ThinkingStrategy implements GameStrategy {
                 if (hasSword(prince)) {
                     final Obstacle obstacle = backward.getObstacle();
                     return new Use(getSword(prince), obstacle);
+                } else {
+                    goBack = !goBack;
+                    return goForward(forward);
+                }
+            } else if (isBush(backward)) {
+                if (hasMatches(prince)) {
+                    final Obstacle obstacle = backward.getObstacle();
+                    return new Use(getMatches(prince), obstacle);
                 } else {
                     goBack = !goBack;
                     return goForward(forward);
@@ -143,7 +160,7 @@ public class ThinkingStrategy implements GameStrategy {
      */
     public boolean canJump(int jump) {
         final Field field = knownFields.get(position + jump);
-        return field != null && !isPitfall(field) && !isKnight(field)&& !isChopper(field);
+        return field != null && !isPitfall(field) && !isKnight(field) && !isChopper(field) && !isBush(field);
     }
 
     /**
